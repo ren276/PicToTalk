@@ -1,0 +1,304 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+import 'package:flutter_tts/flutter_tts.dart';
+
+import 'package:pictotalk/views/emotion_detection_screen.dart';
+import 'package:pictotalk/views/generateTextFromImage.dart';
+import 'package:pictotalk/views/sign_language_detection.dart';
+import 'package:pictotalk/views/splash_screen.dart';
+
+import '../main.dart';
+
+import 'ObjectDetectionScreen.dart';
+
+import 'barcode_scanner_screen.dart';
+
+import 'body_parts_detection_screen.dart';
+
+import 'face_detector_screen.dart';
+
+import 'generateLabelsFromImage.dart';
+
+class SelectionScreen extends StatefulWidget {
+  const SelectionScreen({Key? key, required this.name}) : super(key: key);
+
+  final String name;
+
+  @override
+  State<SelectionScreen> createState() => _SelectionScreenState();
+}
+
+class _SelectionScreenState extends State<SelectionScreen> {
+  FlutterTts flutterTts = FlutterTts();
+
+  User? user = FirebaseAuth.instance.currentUser;
+
+  @override
+  void initState() {
+    welcomeWords();
+
+    super.initState();
+  }
+
+  Future<void> welcomeWords() async {
+    List<dynamic> voices = await flutterTts.getVoices;
+
+    for (dynamic voice in voices) {
+      print("Voice name: ${voice['name']}");
+
+      print("Voice identifier: ${voice['voiceId']}");
+
+      print("Language: ${voice['language']}");
+
+      print("Country: ${voice['country']}");
+
+      print("");
+    }
+
+    await flutterTts.setVoice({
+      'name': voices[7]['name'],
+      'locale': voices[7]['locale'],
+    });
+
+    await flutterTts.speak(
+        "Hey! ${widget.name} Welcome to PicTalk. What do you want PicTalk to help you do?");
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xff14202e),
+      appBar: AppBar(
+        backgroundColor: const Color(0xff14202e),
+        elevation: 0,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          children: [
+            UserAccountsDrawerHeader(
+              accountName: Text("${user?.displayName}"),
+              accountEmail: Text("${user?.email}"),
+              currentAccountPicture: ClipOval(
+                child: Image.network(
+                  "${user?.photoURL}",
+                ),
+              ),
+              decoration: BoxDecoration(
+                color: Color(0xff14202e),
+              ),
+            ),
+            ListTile(
+              title: Text(
+                "Logout",
+                style: TextStyle(fontSize: 20),
+              ),
+              trailing: Icon(Icons.logout),
+              onTap: () {
+                FirebaseAuth.instance.signOut();
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SplashScreen(),
+                  ),
+                  (route) => false,
+                );
+              },
+            )
+          ],
+        ),
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: 10, right: 20.0, left: 20),
+          ),
+          Padding(
+            padding: EdgeInsets.only(top: 10, right: 20.0, left: 20),
+            child: Text(
+              "What do you want PicTalk to help you do, ${widget.name}?",
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 25,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(
+            height: 30,
+          ),
+          Expanded(
+            child: GridView.count(
+              primary: false,
+              mainAxisSpacing: 20,
+              crossAxisSpacing: 15,
+              padding: const EdgeInsets.all(20),
+              crossAxisCount: 2,
+              children: [
+                customCard(
+                  "assets/demo.png",
+                  "Extract Text from Images",
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TextFromImageScreen(),
+                    ),
+                  ),
+                  false,
+                ),
+                customCard(
+                  "assets/demo.png",
+                  "Generate Image Labels",
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LabelFromImage(),
+                      ),
+                    );
+                  },
+                  false,
+                ),
+                customCard(
+                  "assets/demo.png",
+                  "Live Emotion from Images",
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EmotionDetectionScreen(),
+                    ),
+                  ),
+                  false,
+                ),
+                customCard(
+                  "assets/demo.png",
+                  "QR/Barcode Scanning",
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => QRScanPage(),
+                    ),
+                  ),
+                  false,
+                ),
+                customCard(
+                  "assets/demo.png",
+                  "Object Detection Screen",
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ObjectDetectionScreen(cameras!),
+                    ),
+                  ),
+                  false,
+                ),
+                customCard(
+                  "assets/demo.png",
+                  "Body Parts Detection",
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BodyPartsDetectionScreen(cameras!),
+                    ),
+                  ),
+                  false,
+                ),
+                customCard(
+                  "assets/demo.png",
+                  "Face Detection",
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FaceDetectionScreen(),
+                      ),
+                    );
+                  },
+                  false,
+                ),
+                customCard("assets/demo.png", "Sign Language Identification",
+                    () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SignLanguageDetection(),
+                    ),
+                  );
+                }, false),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget customCard(img, String title, Function()? onTap, bool isDisabled) {
+    return GestureDetector(
+      onTap: onTap,
+
+      // child: Neumorphic(
+      //   style: NeumorphicStyle(
+      //     intensity: 1,
+      //     depth: isDisabled ? 2.5 : 6,
+      //     border: NeumorphicBorder(color: Colors.white54),
+      //     shadowLightColor: isDisabled
+      //         ? Colors.grey.shade500
+      //         : Color.fromARGB(
+      //             255,
+      //             40,
+      //             46,
+      //             80,
+      //           ),
+      //     shadowDarkColor: isDisabled
+      //         ? Colors.grey
+      //         : Color.fromARGB(
+      //             255,
+      //             16,
+      //             18,
+      //             33,
+      //           ),
+      //     boxShape: NeumorphicBoxShape.roundRect(
+      //       BorderRadius.circular(20),
+      //     ),
+      //   ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: isDisabled ? Colors.grey.shade400 : Color(0xff1b2c40),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 70,
+                width: 70,
+                child: Image.asset(
+                  img,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: isDisabled ? Colors.grey.shade600 : Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

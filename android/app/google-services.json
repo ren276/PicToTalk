@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "466414012219",
+    "project_id": "pictotalk-44b96",
+    "storage_bucket": "pictotalk-44b96.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:466414012219:android:a2a5d9acdcc894b77a991e",
+        "android_client_info": {
+          "package_name": "com.example.pictotalk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5xF1C0nacX7ENxO3LkAfv_oBDDOouwxo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
